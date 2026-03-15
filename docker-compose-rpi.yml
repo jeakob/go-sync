@@ -1,0 +1,50 @@
+networks:
+  sync:
+    driver: bridge
+
+volumes:
+  dynamo:
+  redis:
+
+services:
+  go-sync:
+    image: ghcr.io/jeakob/go-sync:latest
+    depends_on:
+      - dynamo-local
+      - redis
+    ports:
+      - "8295:8295"
+    networks:
+      - sync
+    environment:
+      - PPROF_ENABLED=true
+      - SENTRY_DSN
+      - ENV=local
+      - DEBUG=1
+      - AWS_ACCESS_KEY_ID=GOSYNC
+      - AWS_SECRET_ACCESS_KEY=GOSYNC
+      - AWS_REGION=us-west-2
+      - AWS_ENDPOINT=http://dynamo-local:8000
+      - TABLE_NAME=client-entity-dev
+      - REDIS_URL=redis:6379
+    restart: unless-stopped
+
+  dynamo-local:
+    image: ghcr.io/jeakob/go-sync-dynamo:latest-rpi
+    ports:
+      - "8000:8000"
+    networks:
+      - sync
+    volumes:
+      - dynamo:/db
+    restart: unless-stopped
+
+  redis:
+    image: redis:6.2
+    ports:
+      - "6379:6379"
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - redis:/data
+    restart: unless-stopped
