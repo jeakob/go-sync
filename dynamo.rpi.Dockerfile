@@ -2,7 +2,9 @@ ARG DB_LOCATION=/home/dynamodblocal/db
 
 FROM eclipse-temurin:21-jre AS install
 
-RUN apt-get update && apt-get install -y curl unzip awscli && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y curl unzip python3 python3-pip && \
+    pip3 install awscli --break-system-packages && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
