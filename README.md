@@ -24,6 +24,55 @@ Currently we use dynamoDB as the datastore, the schema could be found in `schema
 4. To connect to your local server from a Brave browser client use `--sync-url="http://localhost:8295/v2"`
 5. For running unit tests, run `make docker-test`
 
+## Deploying a pre-built image
+
+Pre-built images are published to the GitHub Container Registry on every push to `master` and support `linux/amd64` and `linux/arm64`.
+
+| Image | Tag | Platform |
+|-------|-----|----------|
+| `ghcr.io/jeakob/go-sync` | `latest` | amd64, arm64 |
+| `ghcr.io/jeakob/go-sync-dynamo` | `latest` | amd64 |
+| `ghcr.io/jeakob/go-sync-dynamo` | `latest-rpi` | arm64 (Raspberry Pi 4) |
+
+amazon/dynamodb-local is based on Amazon Linux 2023 which requires ARMv8.2-a+, but the Raspberry Pi 4's Cortex-A72 is only ARMv8.0-a — so it will never run that image.
+
+### x86 / standard arm64
+
+```bash
+docker compose -f docker-compose.yml up
+```
+
+### Raspberry Pi 4
+
+```bash
+docker compose -f docker-compose.rpi.yml up
+```
+
+> Data is persisted across restarts in `./data/dynamo` and `./data/redis`.
+
+### Pointing Brave at your server
+
+**Via flags UI:** Open `brave://flags`, search for `brave-override-sync-server-url`, enter your server URL and restart.
+
+**Via command line:**
+```bash
+# Linux
+brave-browser --sync-url="http://<your-server-ip>:8295/v2"
+
+# macOS
+/Applications/Brave\ Browser.app/Contents/MacOS/Brave\ Browser --sync-url="http://<your-server-ip>:8295/v2"
+
+# Windows
+"C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe" --sync-url="http://<your-server-ip>:8295/v2"
+```
+
+**Linux persistent flag** (add to `~/.config/brave-flags.conf`):
+```
+--sync-url=http://<your-server-ip>:8295/v2
+```
+
+Verify the server is being used at `brave://sync-internals`.
+
 # Updating protocol definitions
 1. Copy the `.proto` files from `components/sync/protocol` in `chromium` to `schema/protobuf/sync_pb` in `go-sync`.
 2. Copy the `.proto` files from `components/sync/protocol` in `brave-core` to `schema/protobuf/sync_pb` in `go-sync`.
@@ -32,9 +81,9 @@ Currently we use dynamoDB as the datastore, the schema could be found in `schema
 5. Run `make protobuf` to generate the Go code from `.proto` definitions.
 
 ## Prometheus Instrumentation
-The instrumented datastore and redis interfaces are generated, providing integration with Prometheus.  The following will re-generate the instrumented code, required when updating protocl definitions:
+The instrumented datastore and redis interfaces are generated, providing integration with Prometheus. The following will re-generate the instrumented code, required when updating protocol definitions:
 
-```
+```bash
 make instrumented
 ```
 
