@@ -48,7 +48,7 @@ docker compose -f docker-compose.yml up
 docker compose -f docker-compose.rpi.yml up
 ```
 
-> Data is persisted across restarts in `./data/dynamo` and `./data/redis`.
+> Data is persisted across restarts using `go-sync_dynamo` and `go-sync_redis` volumes.
 
 ### Pointing Brave at your server
 
