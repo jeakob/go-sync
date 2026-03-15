@@ -18,8 +18,14 @@ jobs:
         include:
           - dockerfile: Dockerfile
             image: go-sync
+            platforms: linux/amd64,linux/arm64
           - dockerfile: dynamo.Dockerfile
             image: go-sync-dynamo
+            platforms: linux/amd64
+          - dockerfile: dynamo.rpi.Dockerfile
+            image: go-sync-dynamo
+            platforms: linux/arm64
+            tag-suffix: -rpi
 
     steps:
       - name: Checkout
@@ -43,8 +49,8 @@ jobs:
         with:
           context: .
           file: ${{ matrix.dockerfile }}
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.platforms }}
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:latest
-            ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:latest${{ matrix.tag-suffix }}
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:${{ github.sha }}${{ matrix.tag-suffix }}
